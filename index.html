@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lahore Air Quality Survey</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      /* ===== GLOBAL ===== */
+      * {
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #1a1a1a, #000000);
+        color: #ffffff;
+      }
+      .container {
+        width: 100%;
+        max-width: 900px;
+      }
+
+      /* ===== CARD / HEADER ===== */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 20px 20px 30px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+      .card-header {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      .card-header h1 {
+        margin: 0;
+        font-size: 26px;
+        letter-spacing: 0.03em;
+      }
+      .card-header p {
+        margin: 6px 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+      }
+      .intro-text {
+        margin-top: 10px;
+        font-size: 13px;
+        opacity: 0.95;
+        line-height: 1.5;
+      }
+
+      /* ===== STEP INDICATOR ===== */
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin: 15px 0 20px;
+        flex-wrap: wrap;
+      }
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        background: transparent;
+        transition: 0.25s ease;
+      }
+      .step-dot.active {
+        background: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+      }
+
+      /* ===== FORM / STEPS ===== */
+      .form-wrapper {
+        position: relative;
+        min-height: 260px;
+      }
+      #survey-form {
+        margin-top: 10px;
+      }
+      .form-steps {
+        position: relative;
+      }
+      .form-step {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+      .form-step.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
+      legend {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      legend i {
+        color: #ffffff;
+      }
+      .question-text {
+        font-size: 14px;
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+
+      .form-group {
+        position: relative;
+        margin-bottom: 14px;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 18px 12px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.35);
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 1px #ffffff;
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .floating-label {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        pointer-events: none;
+        transition: all 0.2s ease;
+      }
+      .form-group textarea + .floating-label {
+        top: 8px;
+        transform: none;
+        font-size: 11px;
+      }
+      .form-group select + .floating-label {
+        top: 6px;
+        transform: none;
+        font-size: 11px;
+        color: #cccccc;
+      }
+      .form-group.filled .floating-label,
+      .form-group input:focus + .floating-label,
+      .form-group select:focus + .floating-label,
+      .form-group textarea:focus + .floating-label {
+        top: 6px;
+        transform: none;
+        font-size: 11px;
+        color: #cccccc;
+      }
+
+      .radio-group,
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .radio-group label,
+      .checkbox-group label {
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+
+      .error-msg {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #ffb3b3;
+      }
+      .group-error {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #ffb3b3;
+      }
+      .form-group.invalid input,
+      .form-group.invalid select,
+      .form-group.invalid textarea {
+        border-color: #ff4d4d;
+        box-shadow: 0 0 0 1px #ff4d4d;
+      }
+      .radio-group.invalid,
+      .checkbox-group.invalid {
+        border-left: 3px solid #ff4d4d;
+        padding-left: 8px;
+      }
+
+      /* ===== BUTTONS ===== */
+      .wizard-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+        font-weight: 600;
+      }
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #ffffff;
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #333333, #666666);
+        color: #ffffff;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.5);
+      }
+
+      /* ===== SUMMARY VIEW ===== */
+      #summary-view {
+        display: none;
+        margin-top: 10px;
+      }
+      #summary-view h2 {
+        margin-top: 0;
+        font-size: 20px;
+      }
+      .qa-item {
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.25);
+        page-break-inside: avoid;
+      }
+      .qa-item h3 {
+        font-size: 14px;
+        margin: 0 0 4px;
+      }
+      .qa-item p {
+        margin: 0;
+        font-size: 13px;
+        opacity: 0.95;
+        white-space: pre-wrap;
+      }
+
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 768px) {
+        .glass-card {
+          padding: 18px 15px 25px;
+        }
+        .card-header h1 {
+          font-size: 20px;
+        }
+      }
+
+      /* ===== PRINT (PDF) ===== */
+      @media print {
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          height: auto;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          background: linear-gradient(
+            135deg,
+            #1a1a1a,
+            #000000
+          ) !important;
+        }
+        .glass-card {
+          border-radius: 0;
+          box-shadow: none;
+        }
+        #survey-form,
+        .wizard-buttons-screen {
+          display: none !important;
+        }
+        #summary-view {
+          display: block !important;
+        }
+        .qa-item {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="glass-card">
+        <div class="card-header">
+          <h1><i class="fa-solid fa-smog"></i> Lahore Air Quality Survey</h1>
+          <p>
+            Help us understand how air pollution is affecting daily life in
+            Lahore.
+          </p>
+          <div class="intro-text">
+            Lahore’s air pollution is getting worse due to traffic, factories,
+            crop/waste burning, and winter weather trapping smog. This affects
+            our health and daily life. Your answers will help us understand the
+            situation better.
+          </div>
+        </div>
+
+        <div class="form-wrapper">
+          <!-- ================= SURVEY FORM ================= -->
+          <form id="survey-form" novalidate>
+            <div class="step-indicator" id="step-indicator"></div>
+
+            <div class="form-steps">
+              <!-- 1. Age -->
+              <div class="form-step active" data-step="1">
+                <fieldset>
+                  <legend><i class="fa-solid fa-user"></i> Demographics</legend>
+                  <div class="question-text">1. How old are you?</div>
+                  <div class="form-group">
+                    <select name="age_group" required>
+                      <option value="">Select your age group...</option>
+                      <option value="0–14">0–14</option>
+                      <option value="15–24">15–24</option>
+                      <option value="25–34">25–34</option>
+                      <option value="35–44">35–44</option>
+                      <option value="45–59">45–59</option>
+                      <option value="60+">60+</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-calendar"></i> Age group*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 2. Area -->
+              <div class="form-step" data-step="2">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-location-dot"></i> Demographics
+                  </legend>
+                  <div class="question-text">
+                    2. Which area of Lahore do you live in?
+                  </div>
+                  <div class="form-group">
+                    <input type="text" name="area" required />
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-map"></i> Area /
+                      neighbourhood*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 3. Day location -->
+              <div class="form-step" data-step="3">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-person-walking"></i> Daily context
+                  </legend>
+                  <div class="question-text">
+                    3. Do you spend most of your day:
+                  </div>
+                  <div class="radio-group" data-required-group="day_location">
+                    <label
+                      ><input
+                        type="radio"
+                        name="day_location"
+                        value="Outdoors"
+                      />
+                      Outdoors</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="day_location"
+                        value="Indoors"
+                      />
+                      Indoors</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="day_location"
+                        value="Both equally"
+                      />
+                      Both equally</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 4. Air rating -->
+              <div class="form-step" data-step="4">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-gauge-high"></i> Perception &
+                    Awareness
+                  </legend>
+                  <div class="question-text">
+                    4. How would you rate the air in Lahore right now? (1 = Very
+                    clean, 5 = Very polluted)
+                  </div>
+                  <div class="form-group">
+                    <select name="air_rating" required>
+                      <option value="">Select a rating...</option>
+                      <option value="1 - Very clean">1 - Very clean</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5 - Very polluted">
+                        5 - Very polluted
+                      </option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-smog"></i> Air rating*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 5. Compared to last year -->
+              <div class="form-step" data-step="5">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-chart-line"></i> Perception &
+                    Awareness
+                  </legend>
+                  <div class="question-text">
+                    5. Compared to last year, how is the air now?
+                  </div>
+                  <div class="form-group">
+                    <select name="air_change" required>
+                      <option value="">Choose an option...</option>
+                      <option value="Much better">Much better</option>
+                      <option value="Slightly better">Slightly better</option>
+                      <option value="Same">Same</option>
+                      <option value="Slightly worse">Slightly worse</option>
+                      <option value="Much worse">Much worse</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-balance-scale"></i> Change vs last
+                      year*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 6. Main causes -->
+              <div class="form-step" data-step="6">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-industry"></i> Perception & Awareness
+                  </legend>
+                  <div class="question-text">
+                    6. What do you think are the main causes of air pollution
+                    here? (Choose up to 3)
+                  </div>
+                  <div class="checkbox-group" data-max-check="3">
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Traffic"
+                      />
+                      Traffic</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Factories/industries"
+                      />
+                      Factories/industries</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Crop/residue burning"
+                      />
+                      Crop/residue burning</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Brick kilns"
+                      />
+                      Brick kilns</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Construction dust"
+                      />
+                      Construction dust</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Trash/waste burning"
+                      />
+                      Trash/waste burning</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Pollution from other regions"
+                      />
+                      Pollution from other regions</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="main_causes"
+                        value="Other"
+                      />
+                      Other (please specify below)</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                  <div class="form-group">
+                    <textarea name="main_causes_other"></textarea>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-comment-dots"></i> Other cause
+                      (optional)</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 7. Health problems -->
+              <div class="form-step" data-step="7">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-heart-pulse"></i> Health & Daily Life
+                  </legend>
+                  <div class="question-text">
+                    7. In the past 6 months, have you or anyone in your
+                    household had cough, wheezing, or breathing problems you
+                    think are caused by air pollution?
+                  </div>
+                  <div class="radio-group" data-required-group="health_issue">
+                    <label
+                      ><input type="radio" name="health_issue" value="Yes" />
+                      Yes</label
+                    >
+                    <label
+                      ><input type="radio" name="health_issue" value="No" />
+                      No</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 8. If yes, details -->
+              <div class="form-step" data-step="8">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-stethoscope"></i> Health & Daily Life
+                  </legend>
+                  <div class="question-text">
+                    8. If yes, who and what symptoms? (If no, you can leave this
+                    blank.)
+                  </div>
+                  <div class="form-group">
+                    <textarea name="health_details"></textarea>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-notes-medical"></i> Details
+                      (optional)</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 9. Doctor visits -->
+              <div class="form-step" data-step="9">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-hospital"></i> Health & Daily Life
+                  </legend>
+                  <div class="question-text">
+                    9. Have you gone to a doctor or hospital for
+                    pollution-related problems in the past year?
+                  </div>
+                  <div class="radio-group" data-required-group="doctor_visit">
+                    <label
+                      ><input type="radio" name="doctor_visit" value="Yes" />
+                      Yes</label
+                    >
+                    <label
+                      ><input type="radio" name="doctor_visit" value="No" />
+                      No</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="doctor_visit"
+                        value="Prefer not to say"
+                      />
+                      Prefer not to say</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 10. Precautions -->
+              <div class="form-step" data-step="10">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-mask-face"></i> Health & Daily Life
+                  </legend>
+                  <div class="question-text">
+                    10. How often do you or your family take precautions against
+                    polluted air (masks, staying indoors, air purifiers)?
+                  </div>
+                  <div class="form-group">
+                    <select name="precautions" required>
+                      <option value="">Choose an option...</option>
+                      <option value="Never">Never</option>
+                      <option value="Rarely">Rarely</option>
+                      <option value="Sometimes">Sometimes</option>
+                      <option value="Often">Often</option>
+                      <option value="Always">Always</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-shield-heart"></i>
+                      Precautions*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 11. Miss work/school -->
+              <div class="form-step" data-step="11">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-briefcase"></i> Economic & Lifestyle
+                  </legend>
+                  <div class="question-text">
+                    11. Has air pollution made you miss work/school or limit
+                    outdoor activities in the last month?
+                  </div>
+                  <div class="form-group">
+                    <select name="miss_work" required>
+                      <option value="">Choose an option...</option>
+                      <option value="Yes — often">Yes — often</option>
+                      <option value="Yes — sometimes">Yes — sometimes</option>
+                      <option value="No">No</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-person-walking-arrow-right"></i>
+                      Impact on work/school*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 12. Money spent -->
+              <div class="form-step" data-step="12">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-money-bills"></i> Economic & Lifestyle
+                  </legend>
+                  <div class="question-text">
+                    12. Have you spent money on medicines or doctor visits due
+                    to bad air in the last year?
+                  </div>
+                  <div class="form-group">
+                    <select name="health_spend" required>
+                      <option value="">Choose an option...</option>
+                      <option value="No">No</option>
+                      <option value="Small">Small</option>
+                      <option value="Moderate">Moderate</option>
+                      <option value="Large">Large</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-sack-dollar"></i> Spending
+                      level*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                  <div class="form-group">
+                    <input type="text" name="health_spend_amount" />
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-coins"></i> (Optional) Rough amount
+                      spent</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 13. Info sources -->
+              <div class="form-step" data-step="13">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-radio"></i> Information & Trust
+                  </legend>
+                  <div class="question-text">
+                    13. Where do you usually get information about Lahore’s air
+                    quality?
+                  </div>
+                  <div class="checkbox-group">
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="TV/news websites"
+                      />
+                      TV/news websites</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="Social media"
+                      />
+                      Social media</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="Government updates"
+                      />
+                      Government updates</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="Friends/family"
+                      />
+                      Friends/family</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="Air-quality apps"
+                      />
+                      Air-quality apps</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="info_sources"
+                        value="Other"
+                      />
+                      Other</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 14. Trust level -->
+              <div class="form-step" data-step="14">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-scale-balanced"></i> Information &
+                    Trust
+                  </legend>
+                  <div class="question-text">
+                    14. How much do you trust official updates about air
+                    pollution and health advice? (1 = Not at all, 5 = Fully
+                    trust)
+                  </div>
+                  <div class="form-group">
+                    <select name="trust_level" required>
+                      <option value="">Select a level...</option>
+                      <option value="1 - Not at all">1 - Not at all</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5 - Fully trust">5 - Fully trust</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-thumbs-up"></i> Trust level*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 15. Authorities doing enough -->
+              <div class="form-step" data-step="15">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-landmark"></i> Preparedness & Policy
+                  </legend>
+                  <div class="question-text">
+                    15. Do you think authorities are doing enough to reduce air
+                    pollution?
+                  </div>
+                  <div
+                    class="radio-group"
+                    data-required-group="authorities_enough"
+                  >
+                    <label
+                      ><input
+                        type="radio"
+                        name="authorities_enough"
+                        value="Yes"
+                      />
+                      Yes</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="authorities_enough"
+                        value="No"
+                      />
+                      No</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="authorities_enough"
+                        value="Not sure"
+                      />
+                      Not sure</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 16. Actions support -->
+              <div class="form-step" data-step="16">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-hand-holding-heart"></i> Preparedness
+                    & Policy
+                  </legend>
+                  <div class="question-text">
+                    16. Which actions would you support most to improve air
+                    quality? (Choose up to 3)
+                  </div>
+                  <div class="checkbox-group" data-max-check="3">
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Stricter vehicle emission checks"
+                      />
+                      Stricter vehicle emission checks</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Temporary driving restrictions"
+                      />
+                      Temporary driving restrictions</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Regulating or closing brick kilns"
+                      />
+                      Regulating or closing brick kilns</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Banning crop/waste burning"
+                      />
+                      Banning crop/waste burning</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Subsidized clean fuels or stoves"
+                      />
+                      Subsidized clean fuels or stoves</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="More public transport"
+                      />
+                      More public transport</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Planting trees"
+                      />
+                      Planting trees</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        name="actions_support"
+                        value="Fines for burning waste"
+                      />
+                      Fines for burning waste</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 17. Smog measures -->
+              <div class="form-step" data-step="17">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-school"></i> Preparedness & Policy
+                  </legend>
+                  <div class="question-text">
+                    17. During heavy smog, would you support measures like
+                    school closures or work-from-home advisories?
+                  </div>
+                  <div class="radio-group" data-required-group="smog_measures">
+                    <label
+                      ><input type="radio" name="smog_measures" value="Yes" />
+                      Yes</label
+                    >
+                    <label
+                      ><input type="radio" name="smog_measures" value="No" />
+                      No</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="smog_measures"
+                        value="Depends"
+                      />
+                      Depends — explain</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                  <div
+                    class="form-group"
+                    id="smog-explain-group"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <textarea name="smog_explain"></textarea>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-comment"></i> If "Depends", please
+                      explain</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 18. Willing to change habits -->
+              <div class="form-step" data-step="18">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-person-rays"></i> Personal Behaviour &
+                    Willingness
+                  </legend>
+                  <div class="question-text">
+                    18. Would you be willing to change your habits (use public
+                    transport, reduce car use, avoid burning) to help improve
+                    air quality?
+                  </div>
+                  <div class="form-group">
+                    <select name="willing_change" required>
+                      <option value="">Choose an option...</option>
+                      <option value="Yes">Yes</option>
+                      <option value="Maybe">Maybe</option>
+                      <option value="No">No</option>
+                    </select>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-person-walking"></i> Willingness to
+                      change*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 19. What would help most -->
+              <div class="form-step" data-step="19">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-circle-question"></i> Personal
+                    Behaviour & Willingness
+                  </legend>
+                  <div class="question-text">
+                    19. What would help you most to avoid polluted air? (Choose
+                    one)
+                  </div>
+                  <div class="radio-group" data-required-group="help_most">
+                    <label
+                      ><input
+                        type="radio"
+                        name="help_most"
+                        value="Affordable masks"
+                      />
+                      Affordable masks</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="help_most"
+                        value="Reliable public transport"
+                      />
+                      Reliable public transport</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="help_most"
+                        value="Cheaper clean fuel"
+                      />
+                      Cheaper clean fuel</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="help_most"
+                        value="Access to air purifiers at home"
+                      />
+                      Access to air purifiers at home</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="help_most"
+                        value="Clear public alerts"
+                      />
+                      Clear public alerts</label
+                    >
+                    <label
+                      ><input type="radio" name="help_most" value="Other" />
+                      Other (please specify)</label
+                    >
+                    <div class="group-error"></div>
+                  </div>
+                  <div
+                    class="form-group"
+                    id="help-other-group"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <input type="text" name="help_most_other" />
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-lightbulb"></i> Other (please
+                      specify)</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <!-- 20. Open question -->
+              <div class="form-step" data-step="20">
+                <fieldset>
+                  <legend>
+                    <i class="fa-solid fa-comments"></i> Open / Concluding
+                  </legend>
+                  <div class="question-text">
+                    20. In your own words, what is the biggest problem you or
+                    your community faces because of air pollution, and what one
+                    solution would you like authorities to try?
+                  </div>
+                  <div class="form-group">
+                    <textarea name="open_response" required></textarea>
+                    <label class="floating-label"
+                      ><i class="fa-solid fa-pen"></i> Your answer*</label
+                    >
+                    <div class="error-msg"></div>
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+
+            <!-- Wizard buttons -->
+            <div class="wizard-buttons wizard-buttons-screen">
+              <button type="button" class="btn btn-secondary" id="btn-prev">
+                <i class="fa-solid fa-arrow-left"></i> Back
+              </button>
+              <button type="button" class="btn btn-primary" id="btn-next">
+                Next <i class="fa-solid fa-arrow-right"></i>
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="btn-submit"
+                style="display: none"
+              >
+                <i class="fa-solid fa-paper-plane"></i> Submit Survey
+              </button>
+            </div>
+          </form>
+
+          <!-- ================= SUMMARY VIEW ================= -->
+          <div id="summary-view">
+            <h2>
+              <i class="fa-solid fa-file-lines"></i> Your Survey Responses
+            </h2>
+            <p style="font-size: 13px; margin-bottom: 15px; opacity: 0.95">
+              Thank you for completing the survey. Below is a summary of your
+              answers. Use the button below to download/print this document.
+            </p>
+            <div id="qa-summary"></div>
+            <button type="button" class="btn btn-secondary" id="download-pdf">
+              <i class="fa-solid fa-file-pdf"></i> Download as PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+      const form = document.getElementById("survey-form");
+      const steps = Array.from(document.querySelectorAll(".form-step"));
+      const totalSteps = steps.length;
+      let currentStep = 1;
+
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+      const btnSubmit = document.getElementById("btn-submit");
+      const stepIndicator = document.getElementById("step-indicator");
+
+      const summaryView = document.getElementById("summary-view");
+      const qaSummary = document.getElementById("qa-summary");
+      const downloadBtn = document.getElementById("download-pdf");
+
+      // ---- Step indicator dots ----
+      function initIndicators() {
+        stepIndicator.innerHTML = "";
+        for (let i = 1; i <= totalSteps; i++) {
+          const dot = document.createElement("div");
+          dot.classList.add("step-dot");
+          if (i === 1) dot.classList.add("active");
+          dot.dataset.stepDot = i;
+          stepIndicator.appendChild(dot);
+        }
+      }
+      function updateIndicators() {
+        document.querySelectorAll(".step-dot").forEach((dot) => {
+          dot.classList.toggle(
+            "active",
+            Number(dot.dataset.stepDot) === currentStep
+          );
+        });
+      }
+
+      // ---- Show a step ----
+      function showStep(step) {
+        steps.forEach((s) => {
+          s.classList.toggle("active", Number(s.dataset.step) === step);
+        });
+        currentStep = step;
+
+        btnPrev.style.visibility = currentStep === 1 ? "hidden" : "visible";
+
+        if (currentStep === totalSteps) {
+          btnNext.style.display = "none";
+          btnSubmit.style.display = "inline-flex";
+        } else {
+          btnNext.style.display = "inline-flex";
+          btnSubmit.style.display = "none";
+        }
+        updateIndicators();
+      }
+
+      // ---- Floating label filled states ----
+      function setFilledStates() {
+        document
+          .querySelectorAll(
+            ".form-group input, .form-group select, .form-group textarea"
+          )
+          .forEach((el) => {
+            const group = el.closest(".form-group");
+            if (!group) return;
+            const toggleFilled = () => {
+              if (el.value.trim() !== "") group.classList.add("filled");
+              else group.classList.remove("filled");
+            };
+            el.addEventListener("input", toggleFilled);
+            el.addEventListener("change", toggleFilled);
+            el.addEventListener("blur", toggleFilled);
+            toggleFilled();
+          });
+      }
+
+      // ---- Validation for current step ----
+      function validateStep(stepIndex) {
+        const stepEl = steps.find((s) => Number(s.dataset.step) === stepIndex);
+        if (!stepEl) return true;
+
+        let valid = true;
+
+        // Clear previous state
+        stepEl
+          .querySelectorAll(".form-group.invalid")
+          .forEach((g) => g.classList.remove("invalid"));
+        stepEl
+          .querySelectorAll(".error-msg")
+          .forEach((e) => (e.textContent = ""));
+        stepEl
+          .querySelectorAll(".radio-group, .checkbox-group")
+          .forEach((g) => {
+            g.classList.remove("invalid");
+            const err = g.querySelector(".group-error");
+            if (err) err.textContent = "";
+          });
+
+        // Required standard fields (ignore radios)
+        const requiredFields = stepEl.querySelectorAll(
+          "input[required], select[required], textarea[required]"
+        );
+        requiredFields.forEach((field) => {
+          if (field.type === "radio" || field.type === "checkbox") return;
+          const group = field.closest(".form-group");
+          const err = group ? group.querySelector(".error-msg") : null;
+          if (!field.value.trim()) {
+            valid = false;
+            if (group) group.classList.add("invalid");
+            if (err) err.textContent = "This field is required.";
+          }
+        });
+
+        // Required radio groups
+        const radioGroups = stepEl.querySelectorAll("[data-required-group]");
+        radioGroups.forEach((rg) => {
+          const name = rg.dataset.requiredGroup;
+          const radios = rg.querySelectorAll(`input[name="${name}"]`);
+          const checked = Array.from(radios).some((r) => r.checked);
+          const err = rg.querySelector(".group-error");
+          if (!checked) {
+            valid = false;
+            rg.classList.add("invalid");
+            if (err) err.textContent = "Please select an option.";
+          }
+        });
+
+        return valid;
+      }
+
+      // ---- Limit checkbox selections ----
+      function setupMaxCheckboxes() {
+        document
+          .querySelectorAll(".checkbox-group[data-max-check]")
+          .forEach((group) => {
+            const max = Number(group.dataset.maxCheck || "3");
+            const checkboxes = group.querySelectorAll('input[type="checkbox"]');
+            const err = group.querySelector(".group-error");
+
+            checkboxes.forEach((cb) => {
+              cb.addEventListener("change", () => {
+                const checked = group.querySelectorAll(
+                  'input[type="checkbox"]:checked'
+                );
+                if (checked.length > max) {
+                  cb.checked = false;
+                  if (err) {
+                    err.textContent = `You can select up to ${max} options.`;
+                    setTimeout(() => (err.textContent = ""), 2500);
+                  }
+                }
+              });
+            });
+          });
+      }
+
+      // ---- Conditional fields (Depends / Other) ----
+      function setupConditionalFields() {
+        // Smog measures "Depends"
+        const smogRadios = document.querySelectorAll(
+          'input[name="smog_measures"]'
+        );
+        const smogExplainGroup = document.getElementById("smog-explain-group");
+        smogRadios.forEach((r) => {
+          r.addEventListener("change", () => {
+            if (r.checked && r.value === "Depends") {
+              smogExplainGroup.style.display = "block";
+            } else if (r.checked) {
+              smogExplainGroup.style.display = "none";
+            }
+          });
+        });
+
+        // Help most "Other"
+        const helpRadios = document.querySelectorAll('input[name="help_most"]');
+        const helpOtherGroup = document.getElementById("help-other-group");
+        helpRadios.forEach((r) => {
+          r.addEventListener("change", () => {
+            if (r.checked && r.value === "Other") {
+              helpOtherGroup.style.display = "block";
+            } else if (r.checked) {
+              helpOtherGroup.style.display = "none";
+            }
+          });
+        });
+      }
+
+      // ---- Question text map for summary ----
+      const questionMap = {
+        age_group: "How old are you?",
+        area: "Which area of Lahore do you live in?",
+        day_location: "Do you spend most of your day:",
+        air_rating: "How would you rate the air in Lahore right now?",
+        air_change: "Compared to last year, how is the air now?",
+        main_causes:
+          "What do you think are the main causes of air pollution here?",
+        health_issue:
+          "In the past 6 months, have you or anyone in your household had cough/wheezing/breathing problems you think are caused by air pollution?",
+        health_details: "If yes, who and what symptoms?",
+        doctor_visit:
+          "Have you gone to a doctor or hospital for pollution-related problems in the past year?",
+        precautions:
+          "How often do you or your family take precautions against polluted air (masks, staying indoors, air purifiers)?",
+        miss_work:
+          "Has air pollution made you miss work/school or limit outdoor activities in the last month?",
+        health_spend:
+          "Have you spent money on medicines or doctor visits due to bad air in the last year?",
+        health_spend_amount:
+          "Rough amount spent due to air pollution-related health issues (if shared)",
+        info_sources:
+          "Where do you usually get information about Lahore’s air quality?",
+        trust_level:
+          "How much do you trust official updates about air pollution and health advice?",
+        authorities_enough:
+          "Do you think authorities are doing enough to reduce air pollution?",
+        actions_support:
+          "Which actions would you support most to improve air quality?",
+        smog_measures:
+          "During heavy smog, would you support measures like school closures or work-from-home advisories?",
+        smog_explain:
+          "If 'Depends', please explain your view on heavy smog measures.",
+        willing_change:
+          "Would you be willing to change your habits to help improve air quality?",
+        help_most: "What would help you most to avoid polluted air?",
+        help_most_other: "If 'Other', what would help you most?",
+        open_response:
+          "Biggest problem your community faces because of air pollution, and one solution you’d like authorities to try",
+      };
+
+      // ---- Build summary view ----
+      function buildSummary() {
+        qaSummary.innerHTML = "";
+        const formData = new FormData(form);
+
+        function addQA(key, value) {
+          if (!value || !questionMap[key]) return;
+          const item = document.createElement("div");
+          item.className = "qa-item";
+          const q = document.createElement("h3");
+          q.textContent = questionMap[key];
+          const a = document.createElement("p");
+          a.textContent = value;
+          item.appendChild(q);
+          item.appendChild(a);
+          qaSummary.appendChild(item);
+        }
+
+        // Single-value fields
+        addQA("age_group", formData.get("age_group"));
+        addQA("area", formData.get("area"));
+        addQA("day_location", formData.get("day_location"));
+        addQA("air_rating", formData.get("air_rating"));
+        addQA("air_change", formData.get("air_change"));
+
+        // Main causes (multi)
+        const causes = formData.getAll("main_causes");
+        const causesOther = formData.get("main_causes_other");
+        let causesText = causes.join(", ");
+        if (causesOther && causesOther.trim()) {
+          causesText +=
+            (causesText ? "; " : "") + "Other: " + causesOther.trim();
+        }
+        addQA("main_causes", causesText);
+
+        // Health
+        addQA("health_issue", formData.get("health_issue"));
+        addQA("health_details", formData.get("health_details"));
+        addQA("doctor_visit", formData.get("doctor_visit"));
+        addQA("precautions", formData.get("precautions"));
+
+        // Economic
+        addQA("miss_work", formData.get("miss_work"));
+        addQA("health_spend", formData.get("health_spend"));
+        addQA("health_spend_amount", formData.get("health_spend_amount"));
+
+        // Info sources (multi)
+        const infoSources = formData.getAll("info_sources");
+        addQA("info_sources", infoSources.join(", "));
+
+        // Trust & policy
+        addQA("trust_level", formData.get("trust_level"));
+        addQA("authorities_enough", formData.get("authorities_enough"));
+
+        const actions = formData.getAll("actions_support");
+        addQA("actions_support", actions.join(", "));
+
+        addQA("smog_measures", formData.get("smog_measures"));
+        addQA("smog_explain", formData.get("smog_explain"));
+
+        // Behaviour
+        addQA("willing_change", formData.get("willing_change"));
+        addQA("help_most", formData.get("help_most"));
+        addQA("help_most_other", formData.get("help_most_other"));
+
+        // Open response
+        addQA("open_response", formData.get("open_response"));
+      }
+
+      // ---- Button handlers ----
+      btnPrev.addEventListener("click", () => {
+        if (currentStep > 1) showStep(currentStep - 1);
+      });
+
+      btnNext.addEventListener("click", () => {
+        if (!validateStep(currentStep)) return;
+        if (currentStep < totalSteps) showStep(currentStep + 1);
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!validateStep(currentStep)) return;
+        buildSummary();
+        form.style.display = "none";
+        summaryView.style.display = "block";
+      });
+
+      if (downloadBtn) {
+        downloadBtn.addEventListener("click", () => {
+          window.print();
+        });
+      }
+
+      // ---- Init ----
+      initIndicators();
+      showStep(1);
+      setFilledStates();
+      setupMaxCheckboxes();
+      setupConditionalFields();
+    </script>
+  </body>
+</html>
